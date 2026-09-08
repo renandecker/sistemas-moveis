@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Montagem de Móveis",
+    "slug": "moveis-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#f5f2ea"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.oficina.moveismobile"
+    },
+    "android": {
+      "package": "com.oficina.moveismobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#2a4948"
+      }
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

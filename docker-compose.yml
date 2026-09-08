@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: moveis-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: moveis_db
+      POSTGRES_USER: moveis
+      POSTGRES_PASSWORD: moveis123
+    ports:
+      - "5432:5432"
+    volumes:
+      - moveis_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U moveis -d moveis_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  moveis_pgdata:
