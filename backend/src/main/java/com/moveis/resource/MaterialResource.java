@@ -1,8 +1,10 @@
 package com.moveis.resource;
 
+import com.moveis.dto.FornecedorMaterialDTO;
 import com.moveis.dto.MaterialDTO;
 import com.moveis.entity.Material;
 import com.moveis.entity.TipoMaterial;
+import com.moveis.repository.FornecedorMaterialRepository;
 import com.moveis.repository.MaterialRepository;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -20,6 +22,9 @@ public class MaterialResource {
 
     @Inject
     MaterialRepository repository;
+
+    @Inject
+    FornecedorMaterialRepository fornecedorMaterialRepository;
 
     @GET
     public List<MaterialDTO> listar(@QueryParam("tipo") TipoMaterial tipo) {
@@ -39,6 +44,16 @@ public class MaterialResource {
     @Path("/abaixo-estoque-minimo")
     public List<MaterialDTO> abaixoEstoqueMinimo() {
         return repository.abaixoDoEstoqueMinimo().stream().map(MaterialDTO::from).collect(Collectors.toList());
+    }
+
+    @GET
+    @Path("/{id}/fornecedores")
+    public Response listarFornecedores(@PathParam("id") Long id) {
+        Material m = repository.findById(id);
+        if (m == null) return Response.status(Response.Status.NOT_FOUND).build();
+        List<FornecedorMaterialDTO> cotacoes = fornecedorMaterialRepository.findByMaterialId(id).stream()
+                .map(FornecedorMaterialDTO::from).collect(Collectors.toList());
+        return Response.ok(cotacoes).build();
     }
 
     @POST

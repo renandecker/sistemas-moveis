@@ -12,15 +12,25 @@ import NovoMaterialScreen from '../screens/NovoMaterialScreen';
 import MoveisScreen from '../screens/MoveisScreen';
 import MovelDetalheScreen from '../screens/MovelDetalheScreen';
 import NovoMovelScreen from '../screens/NovoMovelScreen';
+import ClientesScreen from '../screens/ClientesScreen';
+import NovoClienteScreen from '../screens/NovoClienteScreen';
+import ClienteDetalheScreen from '../screens/ClienteDetalheScreen';
 import OrdensScreen from '../screens/OrdensScreen';
 import NovaOrdemScreen from '../screens/NovaOrdemScreen';
+import FornecedoresScreen from '../screens/FornecedoresScreen';
+import NovoFornecedorScreen from '../screens/NovoFornecedorScreen';
+import FornecedorDetalheScreen from '../screens/FornecedorDetalheScreen';
+import EstoqueScreen from '../screens/EstoqueScreen';
+import FluxoCaixaScreen from '../screens/FluxoCaixaScreen';
 import CalculadorasScreen from '../screens/CalculadorasScreen';
 import ConfiguracoesScreen from '../screens/ConfiguracoesScreen';
+import MaisMenuScreen from '../screens/MaisMenuScreen';
 
 const Tab = createBottomTabNavigator();
 const StackMoveis = createNativeStackNavigator();
 const StackMateriais = createNativeStackNavigator();
-const StackOrdens = createNativeStackNavigator();
+const StackClientes = createNativeStackNavigator();
+const StackMais = createNativeStackNavigator();
 
 const opcoesStackPadrao = {
   headerStyle: { backgroundColor: cores.teal },
@@ -47,12 +57,33 @@ function MateriaisStack() {
   );
 }
 
-function OrdensStack() {
+function ClientesStack() {
   return (
-    <StackOrdens.Navigator screenOptions={opcoesStackPadrao}>
-      <StackOrdens.Screen name="OrdensLista" component={OrdensScreen} options={{ title: 'Ordens de Montagem' }} />
-      <StackOrdens.Screen name="NovaOrdem" component={NovaOrdemScreen} options={{ title: 'Nova ordem' }} />
-    </StackOrdens.Navigator>
+    <StackClientes.Navigator screenOptions={opcoesStackPadrao}>
+      <StackClientes.Screen name="ClientesLista" component={ClientesScreen} options={{ title: 'Clientes' }} />
+      <StackClientes.Screen name="ClienteDetalhe" component={ClienteDetalheScreen} options={{ title: 'Cliente' }} />
+      <StackClientes.Screen name="NovoCliente" component={NovoClienteScreen} options={{ title: 'Novo cliente' }} />
+    </StackClientes.Navigator>
+  );
+}
+
+// Agrupa as áreas secundárias (Ordens, Fornecedores, Estoque, Calculadoras,
+// Config) numa única pilha acessada pela aba "Mais", para não sobrecarregar
+// a barra de abas inferior com muitos itens.
+function MaisStack() {
+  return (
+    <StackMais.Navigator screenOptions={opcoesStackPadrao}>
+      <StackMais.Screen name="MaisMenu" component={MaisMenuScreen} options={{ title: 'Mais' }} />
+      <StackMais.Screen name="OrdensLista" component={OrdensScreen} options={{ title: 'Ordens de Montagem' }} />
+      <StackMais.Screen name="NovaOrdem" component={NovaOrdemScreen} options={{ title: 'Nova ordem' }} />
+      <StackMais.Screen name="FornecedoresLista" component={FornecedoresScreen} options={{ title: 'Fornecedores' }} />
+      <StackMais.Screen name="FornecedorDetalhe" component={FornecedorDetalheScreen} options={{ title: 'Fornecedor' }} />
+      <StackMais.Screen name="NovoFornecedor" component={NovoFornecedorScreen} options={{ title: 'Novo fornecedor' }} />
+      <StackMais.Screen name="Estoque" component={EstoqueScreen} options={{ title: 'Entrada · Saída' }} />
+      <StackMais.Screen name="FluxoCaixa" component={FluxoCaixaScreen} options={{ title: 'Fluxo de Caixa' }} />
+      <StackMais.Screen name="Calculadoras" component={CalculadorasScreen} options={{ title: 'Calculadoras' }} />
+      <StackMais.Screen name="Config" component={ConfiguracoesScreen} options={{ title: 'Configurações' }} />
+    </StackMais.Navigator>
   );
 }
 
@@ -60,9 +91,8 @@ const ICONES = {
   Painel: 'home-outline',
   Materiais: 'cube-outline',
   Moveis: 'hammer-outline',
-  Ordens: 'clipboard-outline',
-  Calculadoras: 'calculator-outline',
-  Config: 'settings-outline',
+  Clientes: 'people-outline',
+  Mais: 'grid-outline',
 };
 
 export default function Navegacao() {
@@ -82,9 +112,8 @@ export default function Navegacao() {
         <Tab.Screen name="Painel" component={PainelScreen} />
         <Tab.Screen name="Materiais" component={MateriaisStack} options={{ title: 'Materiais' }} />
         <Tab.Screen name="Moveis" component={MoveisStack} options={{ title: 'Móveis' }} />
-        <Tab.Screen name="Ordens" component={OrdensStack} options={{ title: 'Ordens' }} />
-        <Tab.Screen name="Calculadoras" component={CalculadorasScreen} />
-        <Tab.Screen name="Config" component={ConfiguracoesScreen} options={{ title: 'Config' }} />
+        <Tab.Screen name="Clientes" component={ClientesStack} options={{ title: 'Clientes' }} />
+        <Tab.Screen name="Mais" component={MaisStack} options={{ title: 'Mais' }} />
       </Tab.Navigator>
     </NavigationContainer>
   );

@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Em emulador Android, o host da máquina é 10.0.2.2. Em dispositivo físico
 // (Expo Go), use o IP da sua máquina na rede local, ex.: 192.168.0.10.
 // Em simulador iOS, 'localhost' funciona normalmente.
-const URL_PADRAO = 'http://10.0.2.2:8080/api';
+const URL_PADRAO = 'http://10.0.2.2:7070/api';
 const CHAVE_STORAGE = '@moveis:api_base_url';
 
 const ConfigContext = createContext(null);

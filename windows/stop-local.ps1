@@ -18,13 +18,13 @@ Push-Location $RootDir
 docker compose down
 Pop-Location
 
-Write-Host "==> Finalizando processos do backend (Quarkus/Java) na porta 8080..." -ForegroundColor Cyan
-$pidBackend = (Get-NetTCPConnection -LocalPort 8080 -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty OwningProcess)
+Write-Host "==> Finalizando processos do backend (Quarkus/Java) na porta 7070..." -ForegroundColor Cyan
+$pidBackend = (Get-NetTCPConnection -LocalPort 7070 -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty OwningProcess)
 if ($pidBackend) {
     Stop-Process -Id $pidBackend -Force
     Write-Host "  Processo $pidBackend finalizado." -ForegroundColor Green
 } else {
-    Write-Host "  Nenhum processo escutando na porta 8080." -ForegroundColor DarkGray
+    Write-Host "  Nenhum processo escutando na porta 7070." -ForegroundColor DarkGray
 }
 
 Write-Host "==> Finalizando processos do frontend (Vite/Node) na porta 5173..." -ForegroundColor Cyan

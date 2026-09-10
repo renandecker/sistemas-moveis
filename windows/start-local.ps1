@@ -163,8 +163,8 @@ Start-Process powershell.exe -ArgumentList @('-NoExit', '-NoProfile', '-Command'
 # ----------------------------------------------------------------------------
 Write-Step "Tudo iniciado!"
 Write-Host ""
-Write-Host "  Backend (API + Swagger):  http://localhost:8080/api" -ForegroundColor White
-Write-Host "  Swagger UI:               http://localhost:8080/swagger-ui" -ForegroundColor White
+Write-Host "  Backend (API + Swagger):  http://localhost:7070/api" -ForegroundColor White
+Write-Host "  Swagger UI:               http://localhost:7070/swagger-ui" -ForegroundColor White
 Write-Host "  Frontend:                 http://localhost:5173" -ForegroundColor White
 Write-Host ""
 Write-Host "  Logs gravados em:" -ForegroundColor White

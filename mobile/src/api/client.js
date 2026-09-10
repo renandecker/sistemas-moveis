@@ -67,6 +67,59 @@ export function criarApi(baseUrl) {
     calcularChapas: (dto) => request(baseUrl, '/calculos/chapas', { method: 'POST', body: JSON.stringify(dto) }),
     calcularFitaBorda: (dto) => request(baseUrl, '/calculos/fita-borda', { method: 'POST', body: JSON.stringify(dto) }),
 
+    // Clientes
+    listarClientes: (busca) => request(baseUrl, `/clientes${busca ? `?busca=${encodeURIComponent(busca)}` : ''}`),
+    buscarCliente: (id) => request(baseUrl, `/clientes/${id}`),
+    criarCliente: (dto) => request(baseUrl, '/clientes', { method: 'POST', body: JSON.stringify(dto) }),
+    removerCliente: (id) => request(baseUrl, `/clientes/${id}`, { method: 'DELETE' }),
+    listarComprasDoCliente: (id) => request(baseUrl, `/clientes/${id}/compras`),
+
+    // Vendas (compras dos clientes, com dados do móvel)
+    criarVenda: (dto) => request(baseUrl, '/vendas', { method: 'POST', body: JSON.stringify(dto) }),
+    atualizarStatusVenda: (id, status) =>
+      request(baseUrl, `/vendas/${id}/status`, { method: 'PATCH', body: JSON.stringify(status) }),
+
+    // Fornecedores
+    listarFornecedores: () => request(baseUrl, '/fornecedores'),
+    buscarFornecedor: (id) => request(baseUrl, `/fornecedores/${id}`),
+    criarFornecedor: (dto) => request(baseUrl, '/fornecedores', { method: 'POST', body: JSON.stringify(dto) }),
+    removerFornecedor: (id) => request(baseUrl, `/fornecedores/${id}`, { method: 'DELETE' }),
+    listarMateriaisDoFornecedor: (id) => request(baseUrl, `/fornecedores/${id}/materiais`),
+    adicionarMaterialAoFornecedor: (id, dto) =>
+      request(baseUrl, `/fornecedores/${id}/materiais`, { method: 'POST', body: JSON.stringify(dto) }),
+    removerMaterialDoFornecedor: (id, itemId) =>
+      request(baseUrl, `/fornecedores/${id}/materiais/${itemId}`, { method: 'DELETE' }),
+
+    // Movimentações de estoque (entrada/saída)
+    listarMovimentacoes: (params = {}) => {
+      const qs = new URLSearchParams();
+      if (params.materialId) qs.set('materialId', params.materialId);
+      if (params.tipo) qs.set('tipo', params.tipo);
+      const query = qs.toString();
+      return request(baseUrl, `/movimentacoes${query ? `?${query}` : ''}`);
+    },
+    registrarMovimentacao: (dto) => request(baseUrl, '/movimentacoes', { method: 'POST', body: JSON.stringify(dto) }),
+
+    // Fluxo de caixa
+    listarLancamentos: (params = {}) => {
+      const qs = new URLSearchParams();
+      if (params.tipo) qs.set('tipo', params.tipo);
+      if (params.status) qs.set('status', params.status);
+      const query = qs.toString();
+      return request(baseUrl, `/fluxo-caixa/lancamentos${query ? `?${query}` : ''}`);
+    },
+    criarLancamento: (dto) => request(baseUrl, '/fluxo-caixa/lancamentos', { method: 'POST', body: JSON.stringify(dto) }),
+    registrarPagamentoLancamento: (id, dto) =>
+      request(baseUrl, `/fluxo-caixa/lancamentos/${id}/pagar`, { method: 'PATCH', body: JSON.stringify(dto || {}) }),
+    cancelarLancamento: (id) => request(baseUrl, `/fluxo-caixa/lancamentos/${id}/cancelar`, { method: 'PATCH' }),
+    resumoFluxoCaixa: (inicio, fim) => {
+      const qs = new URLSearchParams();
+      if (inicio) qs.set('inicio', inicio);
+      if (fim) qs.set('fim', fim);
+      const query = qs.toString();
+      return request(baseUrl, `/fluxo-caixa/resumo${query ? `?${query}` : ''}`);
+    },
+
     // Diagnóstico de conexão (usado na tela de Configurações)
     testarConexao: () => request(baseUrl, '/moveis'),
   };

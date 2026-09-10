@@ -9,6 +9,11 @@
     Requer que o 'psql' esteja no PATH (instalado junto com o PostgreSQL,
     geralmente em C:\Program Files\PostgreSQL\<versao>\bin).
 
+    NOTA SOBRE PORTAS: o container Docker deste projeto expõe o Postgres na
+    porta 5452 do host (para não conflitar com uma instalação nativa). Este
+    script, por sua vez, assume a porta padrão 5432 do PostgreSQL nativo —
+    ajuste -PgPort se a sua instalação usa outra porta.
+
     Uso:
         .\windows\create-database.ps1
         .\windows\create-database.ps1 -PgHost localhost -PgPort 5432 -PgSuperUser postgres

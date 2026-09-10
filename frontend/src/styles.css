@@ -1,20 +1,23 @@
-@import url('https://fonts.googleapis.com/css2?family=Zilla+Slab:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root {
-  --bg: #f5f2ea;
-  --paper: #fbf9f4;
+  --bg: #f5f4f0;
+  --paper: #faf9f6;
   --panel: #ffffff;
-  --ink: #241e19;
-  --muted: #8a7f6f;
-  --line: #ded4bf;
-  --line-strong: #c9bc9f;
-  --accent: #ab5029;
-  --accent-soft: #f2e2d4;
-  --teal: #2a4948;
+  --ink: #16211f;
+  --muted: #7c8582;
+  --line: #e2e0d8;
+  --line-strong: #cdc9bd;
+  --accent: #84692f;
+  --accent-light: #c9ad72;
+  --accent-soft: #f2ecdc;
+  --teal: #101c1c;
+  --teal-soft: #1c2d2b;
   --warn: #a23b2e;
   --warn-soft: #f6e2dd;
+  --success: #2a4948;
   --radius: 3px;
-  --font-display: 'Zilla Slab', Georgia, serif;
+  --font-display: 'Cormorant Garamond', Georgia, serif;
   --font-body: 'IBM Plex Sans', -apple-system, sans-serif;
   --font-mono: 'IBM Plex Mono', 'SFMono-Regular', monospace;
 }
@@ -73,30 +76,13 @@ a:hover { text-decoration: underline; }
 .brand {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  margin: -0.5rem -0.25rem 0;
 }
 
-.brand-mark {
-  font-size: 1.6rem;
-  color: var(--accent);
-  line-height: 1;
-}
-
-.brand-text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.2;
-}
-
-.brand-text strong {
-  font-family: var(--font-display);
-  font-size: 1.15rem;
-}
-
-.brand-text span {
-  font-size: 0.72rem;
-  color: #b7cfc9;
-  letter-spacing: 0.02em;
+.brand-logo {
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .nav {
@@ -116,7 +102,7 @@ a:hover { text-decoration: underline; }
 
 .nav-link.is-active {
   color: #fff;
-  border-left-color: var(--accent);
+  border-left-color: var(--accent-light);
   background: rgba(255, 255, 255, 0.05);
   font-weight: 500;
 }
@@ -132,8 +118,8 @@ a:hover { text-decoration: underline; }
 .sidebar-foot .tick {
   display: inline-block;
   font-family: var(--font-mono);
-  color: var(--accent);
-  background: rgba(171, 80, 41, 0.18);
+  color: var(--accent-light);
+  background: rgba(201, 173, 114, 0.16);
   padding: 0.1rem 0.4rem;
   border-radius: var(--radius);
   margin-bottom: 0.4rem;
@@ -312,7 +298,7 @@ a:hover { text-decoration: underline; }
   border-radius: var(--radius);
 }
 
-.btn-primary:hover { background: #8f4020; }
+.btn-primary:hover { background: #6f5726; }
 
 .btn-link {
   background: none;
@@ -430,6 +416,23 @@ input:focus, select:focus, textarea:focus {
   padding-top: 1rem;
   border-top: 1px solid var(--line-strong);
   font-size: 0.9rem;
+}
+
+.kpi-row-caixa {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.8rem;
+}
+
+.subhead-plain {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin: 0 0 0.6rem 0;
+}
+
+@media (max-width: 900px) {
+  .kpi-row-caixa { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* ---------- Responsive ---------- */

@@ -26,3 +26,48 @@ INSERT INTO estrutura_movel (movel_id, material_id, quantidade_necessaria, perce
 (2, 3, 4.000, 0.05, NULL, NULL, NULL),
 (2, 4, 2.000, 0.05, NULL, NULL, NULL),
 (2, 6, 20.000, 0.10, NULL, NULL, NULL);
+
+-- Fornecedores de materiais
+INSERT INTO fornecedores (nome, cnpj, email, telefone, logradouro, numero, cidade, estado, cep, ativo) VALUES
+('Madeplac Distribuidora', '12.345.678/0001-90', 'vendas@madeplac.com.br', '(51) 3222-1000', 'Av. das Indústrias', '1200', 'Lajeado', 'RS', '95900-000', true),
+('Ferragens Sul Ltda', '23.456.789/0001-11', 'comercial@ferragensul.com.br', '(51) 3222-2000', 'Rua dos Metalúrgicos', '450', 'Estrela', 'RS', '95880-000', true),
+('Insumos & Cia', '34.567.890/0001-22', 'contato@insumosecia.com.br', '(51) 3222-3000', 'Rua Industrial', '80', 'Lajeado', 'RS', '95900-100', true);
+
+-- Tabela de preços por fornecedor (cotações)
+INSERT INTO fornecedor_material (fornecedor_id, material_id, preco_unitario, prazo_entrega_dias, preferencial) VALUES
+(1, 1, 189.90, 5, true),
+(1, 2, 210.50, 5, true),
+(2, 3, 4.75, 3, true),
+(2, 4, 21.90, 3, true),
+(2, 5, 0.14, 2, true),
+(3, 6, 0.85, 4, true),
+(3, 7, 32.00, 4, true),
+(3, 8, 0.10, 2, true);
+
+-- Clientes
+INSERT INTO clientes (nome, cpf_cnpj, email, telefone, logradouro, numero, complemento, bairro, cidade, estado, cep) VALUES
+('Ana Beatriz Souza', '123.456.789-00', 'ana.souza@email.com', '(51) 99911-2233', 'Rua das Flores', '234', 'Ap. 302', 'Centro', 'Lajeado', 'RS', '95900-010'),
+('Carlos Eduardo Lima', '987.654.321-00', 'cadu.lima@email.com', '(51) 99922-3344', 'Av. Sete de Setembro', '1500', NULL, 'Moinhos', 'Lajeado', 'RS', '95900-020');
+
+-- Vendas (compras dos clientes, com os dados do móvel)
+INSERT INTO vendas (cliente_id, movel_id, quantidade, valor_unitario, valor_total, status) VALUES
+(1, 1, 1, 2890.00, 2890.00, 'ENTREGUE'),
+(2, 2, 2, 1290.00, 2580.00, 'PENDENTE');
+
+-- Movimentações de estoque (histórico de entrada/saída)
+INSERT INTO movimentacoes_estoque (material_id, tipo, quantidade, custo_unitario, fornecedor_id, observacao) VALUES
+(1, 'ENTRADA', 10.000, 189.90, 1, 'Compra inicial de estoque'),
+(3, 'ENTRADA', 200.000, 4.75, 2, 'Reposição de dobradiças'),
+(1, 'SAIDA', 2.000, NULL, NULL, 'Consumo em produção (ajuste manual)');
+
+-- Fluxo de caixa: lançamentos correspondentes às vendas/compras acima
+-- (em uso normal via API, esses lançamentos são criados automaticamente
+-- pelo FluxoCaixaService; aqui inserimos manualmente só para popular o demo).
+INSERT INTO lancamentos_financeiros (tipo, categoria, descricao, valor, data_vencimento, data_pagamento, status, forma_pagamento, venda_id, fornecedor_id, observacao) VALUES
+('RECEITA', 'VENDA_MOVEL', 'Venda: Guarda-Roupa Casal 6 Portas (1x) — Ana Beatriz Souza', 2890.00, CURRENT_DATE, CURRENT_TIMESTAMP, 'PAGO', 'PIX', 1, NULL, NULL),
+('RECEITA', 'VENDA_MOVEL', 'Venda: Rack para TV 180cm (2x) — Carlos Eduardo Lima', 2580.00, CURRENT_DATE + INTERVAL '10 days', NULL, 'PENDENTE', NULL, 2, NULL, NULL),
+('DESPESA', 'COMPRA_MATERIAL', 'Compra: Chapa MDF Branco 15mm (10 UN)', 1899.00, CURRENT_DATE, CURRENT_TIMESTAMP, 'PAGO', 'BOLETO', NULL, 1, NULL),
+('DESPESA', 'COMPRA_MATERIAL', 'Compra: Dobradiça 35mm com Amortecedor (200 UN)', 950.00, CURRENT_DATE + INTERVAL '5 days', NULL, 'PENDENTE', NULL, NULL, 2, NULL),
+('DESPESA', 'ALUGUEL', 'Aluguel do galpão — mês corrente', 3200.00, CURRENT_DATE + INTERVAL '3 days', NULL, 'PENDENTE', NULL, NULL, NULL, NULL),
+('DESPESA', 'SALARIOS', 'Folha de pagamento — equipe de montagem', 8500.00, CURRENT_DATE - INTERVAL '2 days', CURRENT_TIMESTAMP, 'PAGO', 'TRANSFERENCIA', NULL, NULL, NULL);
+

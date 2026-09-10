@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, RefreshControl } from 'react-native';
+import { View, Text, Image, ScrollView, StyleSheet, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useApi } from '../hooks/useApi';
 import { cores, espacamento } from '../theme';
@@ -41,6 +41,14 @@ export default function PainelScreen() {
       contentContainerStyle={styles.conteudo}
       refreshControl={<RefreshControl refreshing={carregando} onRefresh={carregar} tintColor={cores.accent} />}
     >
+      <View style={styles.headerMarca}>
+        <Image
+          source={require('../../assets/logo-moveis-paje.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
+
       <Text style={styles.eyebrow}>Visão geral</Text>
       <Text style={styles.titulo}>Painel de Produção</Text>
       <Text style={styles.lede}>Catálogo, modelos e ordens em andamento na oficina.</Text>
@@ -93,6 +101,16 @@ function KpiCard({ valor, label, alerta }) {
 const styles = StyleSheet.create({
   tela: { flex: 1, backgroundColor: cores.bg },
   conteudo: { padding: espacamento.lg, paddingTop: espacamento.xxl, paddingBottom: espacamento.xxl },
+  headerMarca: {
+    marginHorizontal: -espacamento.lg,
+    marginTop: -espacamento.xxl,
+    marginBottom: espacamento.lg,
+    backgroundColor: cores.teal,
+    paddingVertical: espacamento.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logo: { width: 170, height: 170 },
   eyebrow: { fontSize: 12, color: cores.muted },
   titulo: { fontSize: 26, fontWeight: '700', color: cores.ink, marginTop: 2 },
   lede: { fontSize: 13, color: cores.muted, marginTop: 6, marginBottom: espacamento.lg },

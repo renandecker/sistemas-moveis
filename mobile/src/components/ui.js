@@ -10,7 +10,7 @@ export function Etiqueta({ texto, tom = 'accent' }) {
   const paleta = {
     accent: { bg: cores.accentSoft, fg: cores.accent },
     warn: { bg: cores.warnSoft, fg: cores.warn },
-    teal: { bg: '#dde9e7', fg: cores.teal },
+    teal: { bg: '#e2e6e4', fg: cores.teal },
   }[tom];
   return (
     <View style={[styles.etiqueta, { backgroundColor: paleta.bg }]}>

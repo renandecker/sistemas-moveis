@@ -6,12 +6,22 @@ import Moveis from './pages/Moveis.jsx'
 import MovelDetalhe from './pages/MovelDetalhe.jsx'
 import OrdensMontagem from './pages/OrdensMontagem.jsx'
 import Calculadoras from './pages/Calculadoras.jsx'
+import Clientes from './pages/Clientes.jsx'
+import ClienteDetalhe from './pages/ClienteDetalhe.jsx'
+import Fornecedores from './pages/Fornecedores.jsx'
+import FornecedorDetalhe from './pages/FornecedorDetalhe.jsx'
+import Estoque from './pages/Estoque.jsx'
+import FluxoCaixa from './pages/FluxoCaixa.jsx'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Painel', end: true },
   { to: '/materiais', label: 'Materiais' },
+  { to: '/estoque', label: 'Entrada · Saída' },
+  { to: '/fornecedores', label: 'Fornecedores' },
   { to: '/moveis', label: 'Móveis · BOM' },
+  { to: '/clientes', label: 'Clientes' },
   { to: '/ordens', label: 'Ordens de Montagem' },
+  { to: '/fluxo-caixa', label: 'Fluxo de Caixa' },
   { to: '/calculadoras', label: 'Calculadoras' },
 ]
 
@@ -20,11 +30,7 @@ export default function App() {
     <div className="shell">
       <aside className="sidebar">
         <div className="brand">
-          <span className="brand-mark">⌗</span>
-          <div className="brand-text">
-            <strong>Oficina</strong>
-            <span>Sistema de Montagem</span>
-          </div>
+          <img src="/logo-moveis-paje.png" alt="Móveis Pajé" className="brand-logo" />
         </div>
 
         <nav className="nav">
@@ -50,9 +56,15 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Painel />} />
           <Route path="/materiais" element={<Materiais />} />
+          <Route path="/estoque" element={<Estoque />} />
+          <Route path="/fornecedores" element={<Fornecedores />} />
+          <Route path="/fornecedores/:id" element={<FornecedorDetalhe />} />
           <Route path="/moveis" element={<Moveis />} />
           <Route path="/moveis/:id" element={<MovelDetalhe />} />
+          <Route path="/clientes" element={<Clientes />} />
+          <Route path="/clientes/:id" element={<ClienteDetalhe />} />
           <Route path="/ordens" element={<OrdensMontagem />} />
+          <Route path="/fluxo-caixa" element={<FluxoCaixa />} />
           <Route path="/calculadoras" element={<Calculadoras />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

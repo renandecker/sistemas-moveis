@@ -1,22 +1,26 @@
 {
   "expo": {
-    "name": "Montagem de Móveis",
-    "slug": "moveis-mobile",
+    "name": "Móveis Pajé",
+    "slug": "moveis-paje-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "icon": "./assets/logo-moveis-paje.png",
     "splash": {
-      "backgroundColor": "#f5f2ea"
+      "image": "./assets/logo-moveis-paje.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#101c1c"
     },
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.oficina.moveismobile"
+      "bundleIdentifier": "com.moveispaje.mobile"
     },
     "android": {
-      "package": "com.oficina.moveismobile",
+      "package": "com.moveispaje.mobile",
       "adaptiveIcon": {
-        "backgroundColor": "#2a4948"
+        "foregroundImage": "./assets/logo-moveis-paje.png",
+        "backgroundColor": "#101c1c"
       }
     },
     "web": {
