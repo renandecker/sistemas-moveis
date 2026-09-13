@@ -101,15 +101,17 @@ if ($temDocker) {
     }
 
     Write-Host "  Aguardando o PostgreSQL ficar pronto..." -ForegroundColor DarkGray
+    Push-Location $RootDir
     $tentativas = 0
     $pronto = $false
     while ($tentativas -lt 30 -and -not $pronto) {
         Start-Sleep -Seconds 2
         $tentativas++
-        $resultado = docker exec moveis-postgres pg_isready -U moveis -d moveis_db 2>&1
+        $resultado = docker compose exec -T postgres pg_isready -U moveis -d moveis_db 2>&1
         if ($LASTEXITCODE -eq 0) { $pronto = $true }
         else { Write-Host "  ainda subindo... ($tentativas/30)" -ForegroundColor DarkGray }
     }
+    Pop-Location
 
     if (-not $pronto) {
         Write-ErroFatal "PostgreSQL nao respondeu a tempo. Rode 'docker compose logs postgres' para investigar."
@@ -163,8 +165,8 @@ Start-Process powershell.exe -ArgumentList @('-NoExit', '-NoProfile', '-Command'
 # ----------------------------------------------------------------------------
 Write-Step "Tudo iniciado!"
 Write-Host ""
-Write-Host "  Backend (API + Swagger):  http://localhost:7070/api" -ForegroundColor White
-Write-Host "  Swagger UI:               http://localhost:7070/swagger-ui" -ForegroundColor White
+Write-Host "  Backend (API + Swagger):  http://localhost:9190/api" -ForegroundColor White
+Write-Host "  Swagger UI:               http://localhost:9190/swagger-ui" -ForegroundColor White
 Write-Host "  Frontend:                 http://localhost:5173" -ForegroundColor White
 Write-Host ""
 Write-Host "  Logs gravados em:" -ForegroundColor White

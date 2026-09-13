@@ -18,6 +18,11 @@ export default function Materiais() {
   const [erro, setErro] = useState(null)
   const [carregando, setCarregando] = useState(false)
 
+  const [fornecedores, setFornecedores] = useState([])
+  const [materialExpandido, setMaterialExpandido] = useState(null)
+  const [cotacoesPorMaterial, setCotacoesPorMaterial] = useState({})
+  const [formVinculo, setFormVinculo] = useState({ fornecedorId: '', precoUnitario: '', prazoEntregaDias: '', preferencial: false })
+
   function carregar(tipo) {
     setCarregando(true)
     api.listarMateriais(tipo || undefined)
@@ -27,6 +32,55 @@ export default function Materiais() {
   }
 
   useEffect(() => { carregar(filtroTipo) }, [filtroTipo])
+
+  useEffect(() => {
+    api.listarFornecedores().then(setFornecedores).catch((e) => setErro(e.message))
+  }, [])
+
+  function alternarExpandir(materialId) {
+    if (materialExpandido === materialId) {
+      setMaterialExpandido(null)
+      return
+    }
+    setMaterialExpandido(materialId)
+    setFormVinculo({ fornecedorId: '', precoUnitario: '', prazoEntregaDias: '', preferencial: false })
+    if (!cotacoesPorMaterial[materialId]) {
+      api.listarFornecedoresDoMaterial(materialId)
+        .then((lista) => setCotacoesPorMaterial((c) => ({ ...c, [materialId]: lista })))
+        .catch((e) => setErro(e.message))
+    }
+  }
+
+  async function vincularFornecedor(materialId) {
+    if (!formVinculo.fornecedorId || !formVinculo.precoUnitario) {
+      setErro('Selecione um fornecedor e informe o preço.')
+      return
+    }
+    setErro(null)
+    try {
+      await api.adicionarMaterialAoFornecedor(formVinculo.fornecedorId, {
+        materialId,
+        precoUnitario: Number(formVinculo.precoUnitario),
+        prazoEntregaDias: formVinculo.prazoEntregaDias ? Number(formVinculo.prazoEntregaDias) : null,
+        preferencial: formVinculo.preferencial,
+      })
+      const lista = await api.listarFornecedoresDoMaterial(materialId)
+      setCotacoesPorMaterial((c) => ({ ...c, [materialId]: lista }))
+      setFormVinculo({ fornecedorId: '', precoUnitario: '', prazoEntregaDias: '', preferencial: false })
+    } catch (e) {
+      setErro(e.message)
+    }
+  }
+
+  async function removerVinculo(materialId, itemId, fornecedorId) {
+    try {
+      await api.removerMaterialDoFornecedor(fornecedorId, itemId)
+      const lista = await api.listarFornecedoresDoMaterial(materialId)
+      setCotacoesPorMaterial((c) => ({ ...c, [materialId]: lista }))
+    } catch (e) {
+      setErro(e.message)
+    }
+  }
 
   function atualizarCampo(campo, valor) {
     setForm((f) => ({ ...f, [campo]: valor }))
@@ -198,19 +252,87 @@ export default function Materiais() {
             </thead>
             <tbody>
               {materiais.map((m) => (
-                <tr key={m.id}>
-                  <td className="mono">{m.sku}</td>
-                  <td>{m.nome}</td>
-                  <td><span className="tag">{m.tipo}</span></td>
-                  <td className={'mono' + (Number(m.estoqueAtual) < Number(m.estoqueMinimo) ? ' warn' : '')}>
-                    {m.estoqueAtual} {m.unidadeMedida}
-                  </td>
-                  <td className="mono">R$ {Number(m.custoUnitario).toFixed(2)}</td>
-                  <td className="row-actions">
-                    <button className="btn-link" onClick={() => editar(m)}>editar</button>
-                    <button className="btn-link btn-danger" onClick={() => remover(m.id)}>remover</button>
-                  </td>
-                </tr>
+                <React.Fragment key={m.id}>
+                  <tr>
+                    <td className="mono">{m.sku}</td>
+                    <td>{m.nome}</td>
+                    <td><span className="tag">{m.tipo}</span></td>
+                    <td className={'mono' + (Number(m.estoqueAtual) < Number(m.estoqueMinimo) ? ' warn' : '')}>
+                      {m.estoqueAtual} {m.unidadeMedida}
+                    </td>
+                    <td className="mono">R$ {Number(m.custoUnitario).toFixed(2)}</td>
+                    <td className="row-actions">
+                      <button className="btn-link" onClick={() => alternarExpandir(m.id)}>
+                        {materialExpandido === m.id ? 'fechar' : 'fornecedores'}
+                      </button>
+                      <button className="btn-link" onClick={() => editar(m)}>editar</button>
+                      <button className="btn-link btn-danger" onClick={() => remover(m.id)}>remover</button>
+                    </td>
+                  </tr>
+                  {materialExpandido === m.id && (
+                    <tr>
+                      <td colSpan={6} style={{ background: 'var(--paper)' }}>
+                        <div style={{ padding: '0.75rem 0.25rem' }}>
+                          <p className="subhead-plain" style={{ marginBottom: '0.5rem' }}>
+                            Fornecedores deste material
+                          </p>
+
+                          {(cotacoesPorMaterial[m.id] ?? []).length === 0 && (
+                            <p className="muted" style={{ fontSize: '0.85rem', marginBottom: '0.75rem' }}>
+                              Nenhum fornecedor vinculado ainda.
+                            </p>
+                          )}
+                          {(cotacoesPorMaterial[m.id] ?? []).length > 0 && (
+                            <table className="table" style={{ marginBottom: '0.75rem' }}>
+                              <thead><tr><th>Fornecedor</th><th>Preço</th><th>Prazo</th><th></th></tr></thead>
+                              <tbody>
+                                {cotacoesPorMaterial[m.id].map((c) => (
+                                  <tr key={c.id}>
+                                    <td>{c.fornecedorNome} {c.preferencial && <span className="tag">preferencial</span>}</td>
+                                    <td className="mono">R$ {Number(c.precoUnitario).toFixed(2)}</td>
+                                    <td className="mono">{c.prazoEntregaDias ? `${c.prazoEntregaDias}d` : '—'}</td>
+                                    <td className="row-actions">
+                                      <button className="btn-link btn-danger" onClick={() => removerVinculo(m.id, c.id, c.fornecedorId)}>remover</button>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          )}
+
+                          <div className="inline-form" style={{ flexWrap: 'wrap' }}>
+                            <label>Fornecedor
+                              <select value={formVinculo.fornecedorId}
+                                      onChange={(e) => setFormVinculo({ ...formVinculo, fornecedorId: e.target.value })}>
+                                <option value="">Selecione…</option>
+                                {fornecedores.map((f) => <option key={f.id} value={f.id}>{f.nome}</option>)}
+                              </select>
+                            </label>
+                            <label>Preço (R$)
+                              <input type="number" step="0.01" style={{ width: '6.5rem' }}
+                                     value={formVinculo.precoUnitario}
+                                     onChange={(e) => setFormVinculo({ ...formVinculo, precoUnitario: e.target.value })} />
+                            </label>
+                            <label>Prazo (dias)
+                              <input type="number" style={{ width: '5rem' }}
+                                     value={formVinculo.prazoEntregaDias}
+                                     onChange={(e) => setFormVinculo({ ...formVinculo, prazoEntregaDias: e.target.value })} />
+                            </label>
+                            <label style={{ flexDirection: 'row', alignItems: 'center', gap: '0.4rem' }}>
+                              <input type="checkbox" style={{ width: 'auto' }}
+                                     checked={formVinculo.preferencial}
+                                     onChange={(e) => setFormVinculo({ ...formVinculo, preferencial: e.target.checked })} />
+                              preferencial
+                            </label>
+                            <button type="button" className="btn-primary" onClick={() => vincularFornecedor(m.id)}>
+                              Vincular
+                            </button>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               ))}
               {materiais.length === 0 && !carregando && (
                 <tr><td colSpan={6} className="muted">Nenhum material encontrado.</td></tr>

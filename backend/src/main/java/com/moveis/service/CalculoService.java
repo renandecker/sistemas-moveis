@@ -2,8 +2,14 @@ package com.moveis.service;
 
 import com.moveis.dto.*;
 import com.moveis.entity.EstruturaMovel;
+import com.moveis.entity.Material;
 import com.moveis.entity.Movel;
+import com.moveis.repository.FornecedorMaterialRepository;
+import com.moveis.repository.MaterialRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.NotFoundException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.math.BigDecimal;
@@ -25,6 +31,9 @@ public class CalculoService {
     @ConfigProperty(name = "app.fita-borda.fator-seguranca", defaultValue = "1.10")
     BigDecimal fatorSegurancaFitaBorda;
 
+    @Inject MaterialRepository materialRepository;
+    @Inject FornecedorMaterialRepository fornecedorMaterialRepository;
+
     /**
      * 2.1 Cálculo de Chapas (Plano de Corte)
      * Área Total de Peças (m²) = Σ (Comprimento × Largura × Quantidade)
@@ -40,21 +49,65 @@ public class CalculoService {
         }
         BigDecimal areaTotalM2 = areaTotalMm2.divide(MM2_PARA_M2, 6, RoundingMode.HALF_UP);
 
+        // Resolve a área útil da chapa e o custo unitário: a partir do material
+        // selecionado (e opcionalmente do fornecedor), ou do valor informado manualmente.
+        BigDecimal areaUtilChapaM2 = req.areaUtilChapaM2;
+        String materialNome = null;
+        String fornecedorNome = null;
+        BigDecimal custoUnitarioChapa = null;
+
+        if (req.materialId != null) {
+            Material material = materialRepository.findById(req.materialId);
+            if (material == null) throw new NotFoundException("Material não encontrado.");
+            if (material.comprimentoMm == null || material.larguraMm == null) {
+                throw new BadRequestException(
+                        "O material \"" + material.nome + "\" não tem comprimento/largura de chapa cadastrados.");
+            }
+
+            areaUtilChapaM2 = BigDecimal.valueOf(material.comprimentoMm)
+                    .multiply(BigDecimal.valueOf(material.larguraMm))
+                    .divide(MM2_PARA_M2, 6, RoundingMode.HALF_UP);
+            materialNome = material.nome;
+            custoUnitarioChapa = material.custoUnitario;
+
+            if (req.fornecedorId != null) {
+                var cotacao = fornecedorMaterialRepository.findByFornecedorEMaterial(req.fornecedorId, req.materialId);
+                if (cotacao.isPresent()) {
+                    custoUnitarioChapa = cotacao.get().precoUnitario;
+                    fornecedorNome = cotacao.get().fornecedor.nome;
+                }
+                // se não houver cotação cadastrada para esse par, mantém o custo padrão do material
+            }
+        }
+
+        if (areaUtilChapaM2 == null) {
+            throw new BadRequestException("Informe a área útil da chapa manualmente ou selecione um material.");
+        }
+
         BigDecimal umMenosPerda = BigDecimal.ONE.subtract(req.percentualPerdaCorte);
-        BigDecimal areaUtilLiquida = req.areaUtilChapaM2.multiply(umMenosPerda);
+        BigDecimal areaUtilLiquida = areaUtilChapaM2.multiply(umMenosPerda);
 
         if (areaUtilLiquida.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                     "Área útil líquida da chapa deve ser positiva. Verifique o percentual de perda de corte.");
         }
 
         BigDecimal chapasExatas = areaTotalM2.divide(areaUtilLiquida, 10, RoundingMode.HALF_UP);
         int chapasNecessarias = chapasExatas.setScale(0, RoundingMode.CEILING).intValue();
 
-        return new CalculoChapaResponse(
+        CalculoChapaResponse resp = new CalculoChapaResponse(
                 areaTotalM2.setScale(4, RoundingMode.HALF_UP),
                 areaUtilLiquida.setScale(4, RoundingMode.HALF_UP),
                 chapasNecessarias);
+
+        resp.materialNome = materialNome;
+        resp.fornecedorNome = fornecedorNome;
+        resp.custoUnitarioChapa = custoUnitarioChapa != null ? custoUnitarioChapa.setScale(2, RoundingMode.HALF_UP) : null;
+        resp.custoTotalEstimado = custoUnitarioChapa != null
+                ? custoUnitarioChapa.multiply(BigDecimal.valueOf(chapasNecessarias)).setScale(2, RoundingMode.HALF_UP)
+                : null;
+
+        return resp;
     }
 
     /**

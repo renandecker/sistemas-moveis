@@ -24,11 +24,42 @@ export default function Calculadoras() {
 }
 
 function CalculadoraChapas() {
+  const [materiais, setMateriais] = useState([])
+  const [materialId, setMaterialId] = useState('')
+  const [fornecedoresDoMaterial, setFornecedoresDoMaterial] = useState([])
+  const [fornecedorId, setFornecedorId] = useState('')
   const [areaUtilChapaM2, setAreaUtilChapaM2] = useState('5.0325')
   const [percentualPerdaCorte, setPercentualPerdaCorte] = useState('0.20')
   const [pecas, setPecas] = useState([{ ...PECA_VAZIA }])
   const [resultado, setResultado] = useState(null)
   const [erro, setErro] = useState(null)
+
+  React.useEffect(() => {
+    api.listarMateriais('CHAPA').then(setMateriais).catch((e) => setErro(e.message))
+  }, [])
+
+  const materialSelecionado = materiais.find((m) => String(m.id) === String(materialId))
+
+  React.useEffect(() => {
+    if (!materialId) {
+      setFornecedoresDoMaterial([])
+      setFornecedorId('')
+      return
+    }
+    api.listarFornecedoresDoMaterial(materialId)
+      .then(setFornecedoresDoMaterial)
+      .catch((e) => setErro(e.message))
+    setFornecedorId('')
+  }, [materialId])
+
+  function escolherMaterial(id) {
+    setMaterialId(id)
+    const m = materiais.find((x) => String(x.id) === String(id))
+    if (m && m.comprimentoMm && m.larguraMm) {
+      const areaM2 = (m.comprimentoMm * m.larguraMm) / 1000000
+      setAreaUtilChapaM2(areaM2.toFixed(4))
+    }
+  }
 
   function atualizarPeca(idx, campo, valor) {
     setPecas((ps) => ps.map((p, i) => (i === idx ? { ...p, [campo]: valor } : p)))
@@ -47,6 +78,8 @@ function CalculadoraChapas() {
     setErro(null)
     try {
       const resp = await api.calcularChapas({
+        materialId: materialId ? Number(materialId) : null,
+        fornecedorId: fornecedorId ? Number(fornecedorId) : null,
         areaUtilChapaM2: Number(areaUtilChapaM2),
         percentualPerdaCorte: Number(percentualPerdaCorte),
         pecas: pecas.map((p) => ({
@@ -71,14 +104,45 @@ function CalculadoraChapas() {
 
       <form onSubmit={calcular}>
         <div className="form-grid">
+          <label className="span-2">Material (chapa) — opcional
+            <select value={materialId} onChange={(e) => escolherMaterial(e.target.value)}>
+              <option value="">— informar área útil manualmente —</option>
+              {materiais.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.sku} — {m.nome} {m.comprimentoMm && m.larguraMm ? `(${m.comprimentoMm}×${m.larguraMm}mm)` : ''}
+                </option>
+              ))}
+            </select>
+            <span className="hint">selecionando um material, a área útil é preenchida automaticamente</span>
+          </label>
+
+          {materialId && (
+            <label className="span-2">Fornecedor — opcional
+              <select value={fornecedorId} onChange={(e) => setFornecedorId(e.target.value)}>
+                <option value="">
+                  {fornecedoresDoMaterial.length > 0
+                    ? `— usar custo padrão do material (R$ ${Number(materialSelecionado?.custoUnitario ?? 0).toFixed(2)}) —`
+                    : '— nenhum fornecedor cadastrado para este material —'}
+                </option>
+                {fornecedoresDoMaterial.map((f) => (
+                  <option key={f.id} value={f.fornecedorId}>
+                    {f.fornecedorNome} — R$ {Number(f.precoUnitario).toFixed(2)} {f.preferencial ? '(preferencial)' : ''}
+                  </option>
+                ))}
+              </select>
+              <span className="hint">usa o preço cadastrado na tabela de preços do fornecedor selecionado</span>
+            </label>
+          )}
+
           <label>Área útil da chapa (m²)
             <input required type="number" step="0.0001" value={areaUtilChapaM2}
-                   onChange={(e) => setAreaUtilChapaM2(e.target.value)} />
+                   onChange={(e) => setAreaUtilChapaM2(e.target.value)} readOnly={!!materialId} />
+            {materialId && <span className="hint">derivada do material selecionado</span>}
           </label>
           <label>% de perda de corte
             <input required type="number" step="0.01" min="0" max="0.9" value={percentualPerdaCorte}
                    onChange={(e) => setPercentualPerdaCorte(e.target.value)} />
-            <span className="hint">0.15–0.25 conforme a especificação</span>
+            <span className="hint">0.15–0.25 conforme a especificação — ajuste livremente</span>
           </label>
         </div>
 
@@ -109,6 +173,18 @@ function CalculadoraChapas() {
           <div className="result-highlight">
             <span>Chapas necessárias</span><strong className="mono">{resultado.chapasNecessarias}</strong>
           </div>
+          {resultado.custoTotalEstimado != null && (
+            <>
+              <div>
+                <span>Custo unitário {resultado.fornecedorNome ? `(${resultado.fornecedorNome})` : '(padrão do material)'}</span>
+                <strong className="mono">R$ {Number(resultado.custoUnitarioChapa).toFixed(2)}</strong>
+              </div>
+              <div className="result-highlight">
+                <span>Custo total estimado</span>
+                <strong className="mono">R$ {Number(resultado.custoTotalEstimado).toFixed(2)}</strong>
+              </div>
+            </>
+          )}
         </div>
       )}
     </section>

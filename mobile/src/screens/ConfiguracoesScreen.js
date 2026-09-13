@@ -48,7 +48,7 @@ export default function ConfiguracoesScreen() {
           label="URL base da API"
           value={valor}
           onChangeText={setValor}
-          placeholder="http://192.168.0.10:7070/api"
+          placeholder="http://192.168.0.10:9190/api"
           autoCapitalize="none"
           autoCorrect={false}
           keyboardType="url"
@@ -67,22 +67,22 @@ export default function ConfiguracoesScreen() {
         <Text style={styles.cartaoTitulo}>Como descobrir o IP correto</Text>
         <Text style={styles.dica}>
           <Text style={styles.dicaDestaque}>Emulador Android:</Text> use{' '}
-          <Text style={styles.mono}>http://10.0.2.2:7070/api</Text> (já é o padrão).
+          <Text style={styles.mono}>http://10.0.2.2:9190/api</Text> (já é o padrão).
         </Text>
         <Text style={styles.dica}>
           <Text style={styles.dicaDestaque}>Simulador iOS:</Text> use{' '}
-          <Text style={styles.mono}>http://localhost:7070/api</Text>.
+          <Text style={styles.mono}>http://localhost:9190/api</Text>.
         </Text>
         <Text style={styles.dica}>
           <Text style={styles.dicaDestaque}>Celular físico (Expo Go):</Text> descubra o IP da sua
           máquina na rede Wi-Fi (Windows: <Text style={styles.mono}>ipconfig</Text>, procure "Endereço
           IPv4") e use algo como{' '}
-          <Text style={styles.mono}>http://192.168.0.10:7070/api</Text>. O celular e o computador
+          <Text style={styles.mono}>http://192.168.0.10:9190/api</Text>. O celular e o computador
           precisam estar na mesma rede.
         </Text>
         <Text style={styles.dica}>
           Lembre-se de rodar o backend com <Text style={styles.mono}>quarkus.http.host=0.0.0.0</Text>{' '}
-          (padrão do Quarkus) e liberar a porta 7070 no firewall do Windows para conexões da rede local.
+          (padrão do Quarkus) e liberar a porta 9190 no firewall do Windows para conexões da rede local.
         </Text>
       </Cartao>
 

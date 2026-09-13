@@ -1,7 +1,11 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: moveis-postgres
+    # Sem "container_name" fixo de propósito: se você tiver mais de uma cópia
+    # desta pasta (ex.: em Downloads e no OneDrive), cada uma cria seu próprio
+    # container com nome baseado na pasta, sem conflitar uma com a outra.
+    # Os scripts usam "docker compose exec postgres" (nome do serviço, não do
+    # container) para funcionar independente do nome real gerado.
     restart: unless-stopped
     environment:
       POSTGRES_DB: moveis_db

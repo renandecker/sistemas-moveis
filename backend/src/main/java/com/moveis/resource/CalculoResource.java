@@ -30,13 +30,8 @@ public class CalculoResource {
     @POST
     @Path("/chapas")
     public Response calcularChapas(@Valid CalculoChapaRequest req) {
-        try {
-            CalculoChapaResponse resp = calculoService.calcularChapas(req);
-            return Response.ok(resp).build();
-        } catch (IllegalArgumentException e) {
-            return Response.status(Response.Status.BAD_REQUEST)
-                    .entity("{\"erro\":\"" + e.getMessage() + "\"}").build();
-        }
+        CalculoChapaResponse resp = calculoService.calcularChapas(req);
+        return Response.ok(resp).build();
     }
 
     @POST

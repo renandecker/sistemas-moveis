@@ -37,9 +37,9 @@ sessões (AsyncStorage).
 
 | Onde o app roda | URL a usar |
 | --- | --- |
-| Emulador Android | `http://10.0.2.2:7070/api` (já é o padrão) |
-| Simulador iOS | `http://localhost:7070/api` |
-| Celular físico (Expo Go) | `http://SEU_IP_LOCAL:7070/api`, ex.: `http://192.168.0.10:7070/api` |
+| Emulador Android | `http://10.0.2.2:9190/api` (já é o padrão) |
+| Simulador iOS | `http://localhost:9190/api` |
+| Celular físico (Expo Go) | `http://SEU_IP_LOCAL:9190/api`, ex.: `http://192.168.0.10:9190/api` |
 
 Para descobrir o IP da sua máquina no Windows: abra o `cmd` e rode `ipconfig`,
 procure por "Endereço IPv4" na sua rede Wi-Fi/Ethernet ativa.
@@ -51,7 +51,7 @@ qual foi o erro (timeout, CORS, DNS, etc.), para facilitar o diagnóstico.
 **Checklist se a conexão falhar:**
 1. O backend está rodando (`mvn quarkus:dev` no terminal do backend sem erros)?
 2. O celular e o computador estão na mesma rede Wi-Fi?
-3. O Firewall do Windows está liberando a porta 7070 para conexões da rede local?
+3. O Firewall do Windows está liberando a porta 9190 para conexões da rede local?
 4. Você usou o IP correto (não `localhost`, a menos que seja emulador/simulador)?
 
 ## 4. Estrutura do projeto

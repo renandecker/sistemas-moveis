@@ -63,7 +63,7 @@ facilitar ver erros depois.
    Get-Content -Path logs\backend.log  -Wait -Tail 50
    Get-Content -Path logs\frontend.log -Wait -Tail 50
    ```
-4. Para encerrar tudo (containers + processos das portas 7070/5173):
+4. Para encerrar tudo (containers + processos das portas 9190/5173):
    dê duplo clique em **`windows\stop-local.bat`** ou rode `.\windows\stop-local.ps1`.
 
 **Não usa Docker?** Instale o PostgreSQL localmente e rode
@@ -139,12 +139,26 @@ cd backend
 mvn quarkus:dev
 ```
 
-- API disponível em `http://localhost:7070/api`
-- Swagger UI em `http://localhost:7070/swagger-ui`
+- API disponível em `http://localhost:9190/api`
+- Swagger UI em `http://localhost:9190/swagger-ui`
 - CORS já liberado para o front-end em dev.
 
 Variáveis de ambiente (opcionais, com defaults já em `application.properties`):
 `DB_URL`, `DB_USER`, `DB_PASSWORD`.
+
+> **Porta ocupada por outro programa?** A porta da API (`quarkus.http.port`,
+> padrão **9190**) já teve que ser trocada neste projeto uma vez porque o
+> **AnyDesk** usa a porta 7070 por padrão para conexões diretas — e ele
+> segura essa porta o tempo todo enquanto está aberto, mesmo minimizado,
+> sem dar pra matar o processo sem ser administrador. Se no futuro a API
+> parecer "travada" (conexão reseta, nunca responde), rode
+> `netstat -ano | findstr :9190` e confira se o processo dono da porta é
+> mesmo `java.exe` — se for outro programa (AnyDesk, Skype, algum outro
+> app), troque a porta no `application.properties` e no
+> `frontend/vite.config.js` para algo incomum, em vez de tentar liberar a
+> porta do outro programa. O script `windows\diagnostico.ps1` automatiza
+> essa checagem (mostra o nome do processo dono da porta antes de tentar
+> subir o backend).
 
 ## 5. Rodando o frontend (React)
 
@@ -157,7 +171,7 @@ npm run dev
 ```
 
 Acesse `http://localhost:5173`. As chamadas a `/api/*` são redirecionadas
-(proxy do Vite) para o backend em `localhost:7070`.
+(proxy do Vite) para o backend em `localhost:9190`.
 
 Build de produção: `npm run build` gera os arquivos estáticos em `frontend/dist`,
 que podem ser servidos por qualquer servidor HTTP (ou copiados para
