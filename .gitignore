@@ -2,6 +2,11 @@
 logs/
 *.log
 
+# Segredos locais (nunca versionar credenciais de banco, ex.: Neon)
+.env
+.env.*
+!.env.example
+
 # Backend (Maven/Quarkus)
 backend/target/
 backend/.mvn/

@@ -92,9 +92,9 @@ if ($temDocker) {
 
     Push-Location $RootDir
     try {
-        docker compose up -d 2>&1 | Tee-Object -FilePath $DbLog
+        docker compose up -d postgres 2>&1 | Tee-Object -FilePath $DbLog
         if ($LASTEXITCODE -ne 0) {
-            Write-ErroFatal "Falha ao rodar 'docker compose up -d'. Veja $DbLog. O Docker Desktop esta aberto e rodando?"
+            Write-ErroFatal "Falha ao rodar 'docker compose up -d postgres'. Veja $DbLog. O Docker Desktop esta aberto e rodando?"
         }
     } finally {
         Pop-Location

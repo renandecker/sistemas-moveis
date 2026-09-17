@@ -21,15 +21,17 @@ O arquivo do logo está em `frontend/public/logo-moveis-paje.png` (web) e
 ```
 moveis-sistema/
 ├── backend/            # API REST em Quarkus
+│   ├── Dockerfile      # build multi-stage (Maven -> imagem JRE Alpine)
+│   ├── .dockerignore
 │   └── src/main/java/com/moveis/
-│       ├── entity/     # Material, Movel, EstruturaMovel (BOM), OrdemMontagem
+│       ├── entity/     # Material, Movel, EstruturaMovel (BOM), OrdemMontagem...
 │       ├── repository/ # Panache repositories
-│       ├── service/    # CalculoService (fórmulas da Seção 2)
+│       ├── service/    # CalculoService (fórmulas da Seção 2), FluxoCaixaService, EstoqueService
 │       ├── resource/   # Endpoints REST
 │       └── dto/        # Objetos de transporte
 ├── frontend/           # SPA em React (web)
 │   └── src/
-│       ├── pages/       Painel, Materiais, Moveis, MovelDetalhe, OrdensMontagem, Calculadoras
+│       ├── pages/       Painel, Materiais, Moveis, MovelDetalhe, OrdensMontagem, Calculadoras...
 │       └── api/client.js
 ├── mobile/             # App React Native (Expo) — consome a mesma API
 │   └── src/
@@ -37,7 +39,8 @@ moveis-sistema/
 │       ├── context/ConfigContext.js  # URL da API configurável no app
 │       └── api/client.js
 ├── windows/            # scripts de inicialização local (Windows)
-└── docker-compose.yml  # PostgreSQL para desenvolvimento
+├── schema.sql          # DDL completo (documentação/migração manual)
+└── docker-compose.yml  # PostgreSQL + backend (opcional)
 ```
 
 ## 2. Início rápido no Windows (scripts prontos)
@@ -159,6 +162,82 @@ Variáveis de ambiente (opcionais, com defaults já em `application.properties`)
 > porta do outro programa. O script `windows\diagnostico.ps1` automatiza
 > essa checagem (mostra o nome do processo dono da porta antes de tentar
 > subir o backend).
+
+### 4.1. Usando o Neon (Postgres na nuvem) em vez do Docker local
+
+O projeto também pode rodar contra um banco Neon, usando o perfil `neon` do
+Quarkus, sem precisar do Docker/Postgres local:
+
+1. **Crie o schema no Neon primeiro** (o perfil `neon` usa
+   `hibernate-orm.database.generation=validate` — ele não cria tabelas
+   sozinho, só confere se já existem). Rode o `schema.sql` da raiz do
+   projeto contra o banco `paje`:
+   ```bash
+   psql "postgresql://neondb_owner:SUA_SENHA@ep-young-water-acjoayuy-pooler.sa-east-1.aws.neon.tech/paje?sslmode=require" -f schema.sql
+   ```
+   (ou cole o conteúdo de `schema.sql` no SQL Editor do painel do Neon).
+
+2. **Rode o backend com o perfil `neon`**, informando usuário/senha por
+   variável de ambiente (a senha nunca fica gravada em nenhum arquivo do
+   projeto):
+   ```bash
+   # Linux/macOS
+   export DB_USER=neondb_owner
+   export DB_PASSWORD=sua-senha-aqui
+   cd backend
+   mvn quarkus:dev -Dquarkus.profile=neon
+   ```
+   No Windows, use o script pronto `windows\start-backend-neon.ps1` — ele
+   pede a senha na hora (sem ecoar na tela) e já ativa o perfil certo.
+
+3. O host e o nome do banco (`ep-young-water-acjoayuy-pooler.sa-east-1.aws.neon.tech`,
+   database `paje`) já estão fixos em `application.properties` sob o
+   prefixo `%neon.` — só usuário e senha vêm de fora.
+
+> **Segurança:** não faça commit de senhas reais em `application.properties`
+> nem em nenhum `.ps1`. Se este projeto for parar num repositório Git
+> (mesmo privado), rotacione a senha do Neon depois de ela ter sido colada
+> em qualquer lugar fora do painel do Neon — trate qualquer senha de banco
+> que passou por chat, print ou arquivo de texto como potencialmente
+> exposta.
+
+### 4.2. Rodando o backend via Docker
+
+O backend tem um `Dockerfile` multi-stage (`backend/Dockerfile`): a primeira
+etapa compila com Maven, a segunda roda só o JAR empacotado (modo *fast-jar*
+do Quarkus) numa imagem enxuta baseada em JRE Alpine, com usuário não-root.
+
+**Opção mais simples — tudo via docker-compose (Postgres + backend juntos):**
+```bash
+docker compose up -d --build
+```
+Isso builda a imagem do backend, sobe o Postgres, espera ele ficar saudável
+(`depends_on: condition: service_healthy`) e só então inicia o backend, já
+conectado ao Postgres pela rede interna do compose. API em
+`http://localhost:9190/api`.
+
+> Se você usa `windows\start-local.ps1` para o dia a dia (com live-reload via
+> `mvn quarkus:dev`), ele continua subindo **só o Postgres** via Docker — o
+> serviço `backend` do compose é para testar a imagem de produção de ponta a
+> ponta, ou rodar tudo containerizado, não para desenvolvimento com reload.
+
+**Só a imagem do backend (Postgres rodando por fora):**
+```bash
+cd backend
+docker build -t moveis-paje-backend .
+docker run -p 9190:9190 \
+  -e DB_URL=jdbc:postgresql://host.docker.internal:5452/moveis_db \
+  -e DB_USER=moveis -e DB_PASSWORD=moveis123 \
+  moveis-paje-backend
+```
+(`host.docker.internal` é como um container acessa a máquina host no
+Docker Desktop/Windows/Mac; no Linux, use o IP da interface `docker0` ou
+rode o Postgres também em container na mesma rede.)
+
+**Porta e memória customizáveis sem rebuild:** `-e PORT=8080` (plataformas
+cloud tipo Render/Railway injetam isso automaticamente) e
+`-e JAVA_OPTS="-Xmx256m"` (ou qualquer flag JVM) funcionam via variável de
+ambiente, sem precisar reconstruir a imagem.
 
 ## 5. Rodando o frontend (React)
 

@@ -105,7 +105,7 @@ Titulo "5. Docker / PostgreSQL"
 $temDocker = [bool](Get-Command docker -ErrorAction SilentlyContinue)
 if ($temDocker) {
     Push-Location $RootDir
-    docker compose up -d 2>&1 | Write-Host
+    docker compose up -d postgres 2>&1 | Write-Host
     Start-Sleep -Seconds 3
     $pgReady = docker compose exec -T postgres pg_isready -U moveis -d moveis_db 2>&1
     Pop-Location
