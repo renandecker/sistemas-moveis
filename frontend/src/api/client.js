@@ -1,24 +1,71 @@
-const BASE_URL = '/api';
+// Em dev, usa o proxy do Vite ('/api' -> backend local). Em produção (build),
+// aponta direto para o backend hospedado — veja .env.production. Pode ser
+// sobrescrito em qualquer ambiente com a variável VITE_API_URL.
+const BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
+// O backend pode estar hospedado num plano gratuito que "dorme" após 15min
+// sem acessos — o primeiro acesso seguinte leva de 15 a 30s pra responder
+// (cold start). Esses dois números controlam esse comportamento:
+const TEMPO_LIMITE_MS = 45_000;      // aborta a chamada só depois de 45s (dá folga pros até 30s do cold start)
+const LIMIAR_AVISO_MS = 3_500;       // se passar disso sem resposta, avisamos a tela que "pode ser cold start"
+
+// Contador de quantas chamadas em andamento já passaram do limiar acima.
+// Enquanto > 0, a UI mostra o aviso de "acordando o servidor"; ao zerar, some.
+let chamadasLentasEmAndamento = 0;
+
+function avisarUI(estaAcordando) {
+  if (estaAcordando) chamadasLentasEmAndamento++;
+  else chamadasLentasEmAndamento = Math.max(0, chamadasLentasEmAndamento - 1);
+
+  window.dispatchEvent(new CustomEvent('api:cold-start', {
+    detail: { acordando: chamadasLentasEmAndamento > 0 },
+  }));
+}
 
 async function request(path, options = {}) {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TEMPO_LIMITE_MS);
 
-  if (!res.ok) {
-    let mensagem = `Erro ${res.status}`;
-    try {
-      const corpo = await res.json();
-      mensagem = corpo.erro || mensagem;
-    } catch (_) {
-      /* corpo sem JSON */
+  // Se a resposta não chegar em ~3,5s, avisa a UI que pode ser o servidor acordando.
+  let avisouLentidao = false;
+  const avisoTimeoutId = setTimeout(() => {
+    avisouLentidao = true;
+    avisarUI(true);
+  }, LIMIAR_AVISO_MS);
+
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      ...options,
+    });
+
+    if (!res.ok) {
+      let mensagem = `Erro ${res.status}`;
+      try {
+        const corpo = await res.json();
+        mensagem = corpo.erro || mensagem;
+      } catch (_) {
+        /* corpo sem JSON */
+      }
+      throw new Error(mensagem);
     }
-    throw new Error(mensagem);
-  }
 
-  if (res.status === 204) return null;
-  return res.json();
+    if (res.status === 204) return null;
+    return await res.json();
+  } catch (e) {
+    if (e.name === 'AbortError') {
+      throw new Error(
+        'O servidor demorou demais para responder (mais de 45s). Se ele estava inativo, ' +
+        'tente novamente em alguns segundos — costuma voltar ao normal no segundo acesso.'
+      );
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeoutId);
+    clearTimeout(avisoTimeoutId);
+    if (avisouLentidao) avisarUI(false);
+  }
 }
 
 export const api = {

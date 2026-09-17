@@ -3,25 +3,57 @@
 // pois o app roda fora do navegador — por isso ela é configurável na tela
 // "Configurações" e injetada via useConfig().
 
+import { marcarInicioChamadaLenta, marcarFimChamadaLenta } from '../utils/coldStartEmitter';
+
+// O backend pode estar hospedado num plano gratuito que "dorme" após 15min
+// sem acessos — o primeiro acesso seguinte leva de 15 a 30s pra responder
+// (cold start). Esses dois números controlam esse comportamento:
+const TEMPO_LIMITE_MS = 45000;   // aborta a chamada só depois de 45s (dá folga pros até 30s do cold start)
+const LIMIAR_AVISO_MS = 3500;    // se passar disso sem resposta, avisamos a tela que "pode ser cold start"
+
 async function request(baseUrl, path, options = {}) {
-  const res = await fetch(`${baseUrl}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TEMPO_LIMITE_MS);
 
-  if (!res.ok) {
-    let mensagem = `Erro ${res.status}`;
-    try {
-      const corpo = await res.json();
-      mensagem = corpo.erro || mensagem;
-    } catch (_) {
-      /* corpo sem JSON */
+  let avisouLentidao = false;
+  const avisoTimeoutId = setTimeout(() => {
+    avisouLentidao = true;
+    marcarInicioChamadaLenta();
+  }, LIMIAR_AVISO_MS);
+
+  try {
+    const res = await fetch(`${baseUrl}${path}`, {
+      headers: { 'Content-Type': 'application/json' },
+      signal: controller.signal,
+      ...options,
+    });
+
+    if (!res.ok) {
+      let mensagem = `Erro ${res.status}`;
+      try {
+        const corpo = await res.json();
+        mensagem = corpo.erro || mensagem;
+      } catch (_) {
+        /* corpo sem JSON */
+      }
+      throw new Error(mensagem);
     }
-    throw new Error(mensagem);
-  }
 
-  if (res.status === 204) return null;
-  return res.json();
+    if (res.status === 204) return null;
+    return await res.json();
+  } catch (e) {
+    if (e.name === 'AbortError') {
+      throw new Error(
+        'O servidor demorou demais para responder (mais de 45s). Se ele estava inativo, ' +
+        'tente novamente em alguns segundos — costuma voltar ao normal no segundo acesso.'
+      );
+    }
+    throw e;
+  } finally {
+    clearTimeout(timeoutId);
+    clearTimeout(avisoTimeoutId);
+    if (avisouLentidao) marcarFimChamadaLenta();
+  }
 }
 
 /**

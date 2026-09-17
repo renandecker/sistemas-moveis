@@ -1,5 +1,6 @@
 import React from 'react'
 import { NavLink, Route, Routes, Navigate } from 'react-router-dom'
+import ColdStartBanner from './components/ColdStartBanner.jsx'
 import Painel from './pages/Painel.jsx'
 import Materiais from './pages/Materiais.jsx'
 import Moveis from './pages/Moveis.jsx'
@@ -28,6 +29,7 @@ const NAV_ITEMS = [
 export default function App() {
   return (
     <div className="shell">
+      <ColdStartBanner />
       <aside className="sidebar">
         <div className="brand">
           <img src="/logo-moveis-paje.png" alt="Móveis Pajé" className="brand-logo" />

@@ -30,6 +30,8 @@ moveis-sistema/
 │       ├── resource/   # Endpoints REST
 │       └── dto/        # Objetos de transporte
 ├── frontend/           # SPA em React (web)
+│   ├── wrangler.toml   # deploy como site estático (Cloudflare Workers Static Assets)
+│   ├── .env.production # aponta o build de produção para o backend publicado
 │   └── src/
 │       ├── pages/       Painel, Materiais, Moveis, MovelDetalhe, OrdensMontagem, Calculadoras...
 │       └── api/client.js
@@ -252,10 +254,52 @@ npm run dev
 Acesse `http://localhost:5173`. As chamadas a `/api/*` são redirecionadas
 (proxy do Vite) para o backend em `localhost:9190`.
 
-Build de produção: `npm run build` gera os arquivos estáticos em `frontend/dist`,
-que podem ser servidos por qualquer servidor HTTP (ou copiados para
-`src/main/resources/META-INF/resources` do Quarkus para formar um artefato
-único, se preferir empacotar tudo em um só deploy).
+### 5.1. Backend publicado (produção)
+
+O backend está publicado em **`https://paje-micro-service-1.onrender.com`**
+(plano gratuito do Render — por isso ele "dorme" após 15 minutos sem acesso;
+veja a nota sobre cold start logo abaixo).
+
+Build de produção do front-end: `npm run build` gera os arquivos estáticos em
+`frontend/dist`, que podem ser servidos por qualquer servidor HTTP estático.
+O arquivo `frontend/.env.production` já configura esse build para chamar o
+backend publicado acima (via `VITE_API_URL`) em vez do proxy local — não
+precisa editar código para isso. Se o backend publicado mudar de endereço,
+basta atualizar essa única variável.
+
+Em desenvolvimento (`npm run dev`), essa variável é ignorada e o front-end
+continua usando o proxy do Vite para o backend local, normalmente.
+
+O front-end é publicado como site estático num **Cloudflare Worker** (Static
+Assets), configurado em `frontend/wrangler.toml`:
+
+```bash
+cd frontend
+npm install
+npm run deploy   # builda (vite build) e publica (wrangler deploy) em sequência
+```
+
+Dois pontos importantes nessa configuração (já resolvidos no
+`wrangler.toml`, mas bom saber o porquê):
+
+- **`[assets] directory = "./dist"`** — serve os arquivos estáticos gerados
+  pelo `vite build` direto do Worker, sem precisar de servidor Node rodando.
+- **`not_found_handling = "single-page-application"`** — essencial porque o
+  front-end usa React Router (rotas como `/materiais`, `/fornecedores/:id`,
+  `/moveis/:id`). Sem essa opção, recarregar a página em qualquer rota que
+  não seja a raiz dá 404, porque esses caminhos não existem como arquivos
+  reais em `./dist` — só existem no roteamento do lado do cliente. Com essa
+  opção, qualquer caminho não encontrado cai de volta no `index.html`, e o
+  React Router assume a partir daí. (Atenção ao nome exato do valor: é
+  `"single-page-application"`, não `"single-page-app"` — testei com o
+  Wrangler real e ele rejeita a variação abreviada.)
+
+> **Cold start:** como o backend está no plano gratuito do Render, se ficar
+> 15 minutos sem receber acessos ele entra em modo de espera. O primeiro
+> acesso seguinte leva de 15 a 30 segundos para responder, enquanto o
+> servidor "acorda". O front-end (web e mobile) já trata isso automaticamente:
+> aumenta o tempo de espera das chamadas para 45s e mostra um aviso
+> "Acordando o servidor…" na tela em vez de parecer travado.
 
 ## 6. O que o sistema cobre
 
@@ -281,9 +325,15 @@ backend, com telas equivalentes ao front-end web: Painel, Materiais, Móveis ·
 BOM, Clientes (com histórico de compras), e uma aba **Mais** reunindo Ordens
 de Montagem, Fornecedores (com tabela de preços), Entrada/Saída de estoque,
 Fluxo de Caixa e Calculadoras — além de uma aba **Config** dentro do menu
-"Mais" para apontar o app para o IP do backend na sua rede local, item
-essencial em mobile, já que não existe proxy de dev nem "localhost"
-compartilhado com o navegador.
+"Mais" para trocar o endereço do backend, caso queira testar contra um
+backend local em vez do publicado (item essencial em mobile, já que não
+existe proxy de dev nem "localhost" compartilhado com o navegador).
+
+Por padrão o app já vem configurado para o backend publicado
+(`https://paje-micro-service-1.onrender.com/api`) — não precisa configurar
+nada para começar a usar. A mesma nota sobre cold start da seção 5.1 vale
+aqui também: o primeiro acesso após o backend "dormir" pode levar até 30s,
+e o app mostra um aviso na tela enquanto isso.
 
 ```bash
 cd mobile

@@ -4,8 +4,10 @@ logs/
 
 # Segredos locais (nunca versionar credenciais de banco, ex.: Neon)
 .env
-.env.*
+.env.local
+.env.*.local
 !.env.example
+!.env.production
 
 # Backend (Maven/Quarkus)
 backend/target/
@@ -16,6 +18,7 @@ backend/mvnw.cmd
 # Frontend (Node/Vite)
 frontend/node_modules/
 frontend/dist/
+frontend/.wrangler/
 
 # Mobile (Expo/React Native)
 mobile/node_modules/

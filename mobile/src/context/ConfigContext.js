@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Em emulador Android, o host da máquina é 10.0.2.2. Em dispositivo físico
-// (Expo Go), use o IP da sua máquina na rede local, ex.: 192.168.0.10.
-// Em simulador iOS, 'localhost' funciona normalmente.
-const URL_PADRAO = 'http://10.0.2.2:9190/api';
+// Padrão de fábrica: o backend publicado (Render). Quem quiser testar contra
+// um backend rodando localmente pode trocar a qualquer momento na tela
+// "Configurações" — lá também tem a explicação de qual endereço usar em
+// cada cenário (emulador Android usa 10.0.2.2, simulador iOS usa localhost,
+// celular físico usa o IP da máquina na rede local).
+const URL_PADRAO = 'https://paje-micro-service-1.onrender.com/api';
 const CHAVE_STORAGE = '@moveis:api_base_url';
 
 const ConfigContext = createContext(null);

@@ -6,8 +6,8 @@
 #
 # Run:
 #   docker run -p 9190:9190 \
-#     -e DB_URL=jdbc:postgresql://ep-young-water-acjoayuy-pooler.sa-east-1.aws.neon.tech/paje?sslmode=require \
-#     -e DB_USER=neondb_owner -e DB_PASSWORD=npg_jiBerdcPo6s7 \
+#     -e DB_URL=jdbc:postgresql://host.docker.internal:5452/moveis_db \
+#     -e DB_USER=moveis -e DB_PASSWORD=moveis123 \
 #     moveis-paje-backend
 #
 # (Para rodar junto com o Postgres via docker-compose, veja o serviço
