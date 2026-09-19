@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // "Configurações" — lá também tem a explicação de qual endereço usar em
 // cada cenário (emulador Android usa 10.0.2.2, simulador iOS usa localhost,
 // celular físico usa o IP da máquina na rede local).
-const URL_PADRAO = 'https://paje-micro-service-1.onrender.com/api';
+const URL_PADRAO = 'https://paje-micro-service.onrender.com/api';
 const CHAVE_STORAGE = '@moveis:api_base_url';
 
 const ConfigContext = createContext(null);

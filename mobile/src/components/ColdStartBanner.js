@@ -21,7 +21,8 @@ export default function ColdStartBanner() {
     <View style={styles.banner}>
       <ActivityIndicator size="small" color="#fff" />
       <Text style={styles.texto}>
-        Acordando o servidor… pode levar até 30 segundos. Aguarde.
+        Acordando o servidor… a instância gratuita foi desativada por inatividade,
+        o que pode atrasar essa resposta em 50 segundos ou mais. Aguarde.
       </Text>
     </View>
   );

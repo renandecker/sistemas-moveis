@@ -196,6 +196,15 @@ Quarkus, sem precisar do Docker/Postgres local:
    database `paje`) já estão fixos em `application.properties` sob o
    prefixo `%neon.` — só usuário e senha vêm de fora.
 
+> **Cold start do Neon:** assim como o backend no Render (ver seção 5.1), o
+> compute do Neon também "dorme" por inatividade. Se a primeira conexão
+> falhar com `Acquisition timeout while waiting for new connection`, é
+> exatamente isso — o pool de conexões (Agroal) esperava só 5s por padrão,
+> tempo insuficiente pro Neon acordar. Já ajustamos
+> `quarkus.datasource.jdbc.acquisition-timeout=30s` no `application.properties`
+> pra dar folga suficiente; se mesmo assim continuar acontecendo, aumente
+> ainda mais esse valor.
+
 > **Segurança:** não faça commit de senhas reais em `application.properties`
 > nem em nenhum `.ps1`. Se este projeto for parar num repositório Git
 > (mesmo privado), rotacione a senha do Neon depois de ela ter sido colada
@@ -256,7 +265,7 @@ Acesse `http://localhost:5173`. As chamadas a `/api/*` são redirecionadas
 
 ### 5.1. Backend publicado (produção)
 
-O backend está publicado em **`https://paje-micro-service-1.onrender.com`**
+O backend está publicado em **`https://paje-micro-service.onrender.com`**
 (plano gratuito do Render — por isso ele "dorme" após 15 minutos sem acesso;
 veja a nota sobre cold start logo abaixo).
 
@@ -294,12 +303,13 @@ Dois pontos importantes nessa configuração (já resolvidos no
   `"single-page-application"`, não `"single-page-app"` — testei com o
   Wrangler real e ele rejeita a variação abreviada.)
 
-> **Cold start:** como o backend está no plano gratuito do Render, se ficar
-> 15 minutos sem receber acessos ele entra em modo de espera. O primeiro
-> acesso seguinte leva de 15 a 30 segundos para responder, enquanto o
-> servidor "acorda". O front-end (web e mobile) já trata isso automaticamente:
-> aumenta o tempo de espera das chamadas para 45s e mostra um aviso
-> "Acordando o servidor…" na tela em vez de parecer travado.
+> **Cold start:** o backend está no plano gratuito do Render — a própria
+> plataforma avisa: *"Sua instância gratuita será desativada por
+> inatividade, o que pode atrasar as requisições em 50 segundos ou mais."*
+> O front-end (web e mobile) já trata isso automaticamente: as chamadas de
+> API esperam até 75s antes de desistir (folga acima dos 50s+ avisados) e
+> mostram um aviso "Acordando o servidor…" na tela assim que uma chamada
+> passa de ~3,5s sem resposta, em vez de parecer travado.
 
 ## 6. O que o sistema cobre
 
@@ -330,10 +340,10 @@ backend local em vez do publicado (item essencial em mobile, já que não
 existe proxy de dev nem "localhost" compartilhado com o navegador).
 
 Por padrão o app já vem configurado para o backend publicado
-(`https://paje-micro-service-1.onrender.com/api`) — não precisa configurar
+(`https://paje-micro-service.onrender.com/api`) — não precisa configurar
 nada para começar a usar. A mesma nota sobre cold start da seção 5.1 vale
-aqui também: o primeiro acesso após o backend "dormir" pode levar até 30s,
-e o app mostra um aviso na tela enquanto isso.
+aqui também: o primeiro acesso após o backend "dormir" pode levar 50 segundos
+ou mais, e o app mostra um aviso na tela enquanto isso.
 
 ```bash
 cd mobile

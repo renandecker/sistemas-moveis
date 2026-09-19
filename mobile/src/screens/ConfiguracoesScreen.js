@@ -95,9 +95,9 @@ export default function ConfiguracoesScreen() {
       <Cartao>
         <Text style={styles.cartaoTitulo}>Primeiro acesso pode demorar</Text>
         <Text style={styles.dica}>
-          O backend publicado "dorme" depois de 15 minutos sem uso. O primeiro acesso
-          seguinte pode levar até 30 segundos para responder — é normal, não precisa
-          tentar de novo, só aguardar.
+          A instância gratuita do backend é desativada por inatividade. Segundo o
+          próprio aviso do Render, isso pode atrasar o primeiro acesso seguinte em
+          50 segundos ou mais — é normal, não precisa tentar de novo, só aguardar.
         </Text>
       </Cartao>
 
